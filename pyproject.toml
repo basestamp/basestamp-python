@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "basestamp"
-version = "1.0.0"
+version = "0.0.1"
 description = "A Python client library for the Basestamp cryptographic timestamping service"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Basestamp", email = "support@basestamp.com"}
+    {name = "Basestamp", email = "support@basestamp.io"}
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
