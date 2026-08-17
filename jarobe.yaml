@@ -1,0 +1,8 @@
+version: 1
+name: basestamp-python
+display_name: Basestamp
+kind: sdk
+remote: basestamp/basestamp-python
+language: python
+verify: generic
+deploy: none
