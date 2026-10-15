@@ -687,3 +687,8 @@ class TestTimestampParsing:
         """Test that malformed ISO string raises ValueError."""
         with pytest.raises(ValueError, match="Unsupported timestamp format"):
             _parse_timestamp("not-a-valid-iso-string")
+
+def test_user_agent_identifies_sdk():
+    from basestamp.client import USER_AGENT
+
+    assert USER_AGENT.startswith("basestamp-python/")

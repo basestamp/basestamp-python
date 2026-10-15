@@ -1,5 +1,6 @@
 """Basestamp client implementation."""
 
+import sys
 import json
 import time
 import urllib.error
@@ -13,6 +14,24 @@ from .types import (
     MerkleProof,
     ServerRequest,
     Stamp,
+)
+
+
+def _sdk_version() -> str:
+    try:
+        from importlib.metadata import version
+
+        return version("basestamp")
+    except Exception:  # pragma: no cover - not installed as a distribution
+        return "0.0.1"
+
+
+SDK_VERSION = _sdk_version()
+# Distinctive User-Agent so the service can count usage per SDK/version.
+# No other telemetry is collected.
+USER_AGENT = (
+    f"basestamp-python/{SDK_VERSION} "
+    f"(python {sys.version_info.major}.{sys.version_info.minor})"
 )
 
 
@@ -193,7 +212,7 @@ class BasestampClient:
         url = f"{self.options.base_url}{endpoint}"
         headers = {
             "Content-Type": "application/json",
-            "User-Agent": "basestamp-python/1.0.0",
+            "User-Agent": USER_AGENT,
         }
 
         # Prepare request data
