@@ -25,11 +25,24 @@ class BasestampError(Exception):
         return f"BasestampError: {self.message}"
 
 
+# Network endpoints and on-chain parameters.
+MAINNET_BASE_URL = "https://api-mainnet.basestamp.io"
+SEPOLIA_BASE_URL = "https://api-sepolia.basestamp.io"
+MAINNET_CHAIN_ID = 8453
+MAINNET_CONTRACT_ADDRESS = "0x634494cB65B17163A4ca84378900Ff53A4Bba05C"
+MAINNET_RPC_URL = "https://mainnet.base.org"
+SEPOLIA_CHAIN_ID = 84532
+SEPOLIA_CONTRACT_ADDRESS = "0x15Adb2cc1aEDB6610E1C801BE7E205be3A8De5d7"
+SEPOLIA_RPC_URL = "https://sepolia.base.org"
+#: Default API (Base mainnet since 0.1.0).
+DEFAULT_BASE_URL = MAINNET_BASE_URL
+
+
 @dataclass
 class ClientOptions:
     """Configuration options for the Basestamp client."""
 
-    base_url: str = "https://api.basestamp.io"
+    base_url: str = DEFAULT_BASE_URL
     timeout: int = 30000  # milliseconds, matching TypeScript implementation
 
 

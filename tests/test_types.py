@@ -40,7 +40,7 @@ class TestClientOptions:
     def test_default_values(self):
         """Test default client options."""
         options = ClientOptions()
-        assert options.base_url == "https://api.basestamp.io"
+        assert options.base_url == "https://api-mainnet.basestamp.io"
         assert options.timeout == 30000
 
     def test_custom_values(self):
@@ -432,3 +432,18 @@ class TestStampVerificationErrors:
         # Should catch the exception and re-wrap it as BasestampError
         with pytest.raises(BasestampError, match="Merkle proof verification failed"):
             stamp.verify(original_hash)
+
+
+def test_sepolia_constants_selectable() -> None:
+    from basestamp import (
+        MAINNET_CHAIN_ID,
+        SEPOLIA_BASE_URL,
+        SEPOLIA_CHAIN_ID,
+        ClientOptions,
+    )
+
+    assert SEPOLIA_BASE_URL == "https://api-sepolia.basestamp.io"
+    assert SEPOLIA_CHAIN_ID == 84532
+    assert MAINNET_CHAIN_ID == 8453
+    opts = ClientOptions(base_url=SEPOLIA_BASE_URL)
+    assert opts.base_url == SEPOLIA_BASE_URL
