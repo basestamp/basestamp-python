@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from basestamp import BasestampClient, Stamp, BasestampError, calculate_sha256
+from basestamp import BasestampClient, BasestampError, Stamp, calculate_sha256
 from basestamp.client import _parse_timestamp
 from basestamp.types import (
     ClientOptions,
@@ -17,7 +17,7 @@ from basestamp.types import (
 def create_mock_response(response_data: dict, status_code: int = 200):
     """Helper function to create mock urllib response."""
     mock_response = Mock()
-    mock_response.read.return_value = json.dumps(response_data).encode('utf-8')
+    mock_response.read.return_value = json.dumps(response_data).encode("utf-8")
     mock_response.__enter__ = Mock(return_value=mock_response)
     mock_response.__exit__ = Mock(return_value=None)
     return mock_response
@@ -25,13 +25,11 @@ def create_mock_response(response_data: dict, status_code: int = 200):
 
 def create_mock_http_error(status_code: int, error_data: dict = None):
     """Helper function to create mock HTTPError."""
-    error_response = json.dumps(error_data or {}).encode('utf-8') if error_data else b"Bad Request"
+    error_response = (
+        json.dumps(error_data or {}).encode("utf-8") if error_data else b"Bad Request"
+    )
     error = urllib.error.HTTPError(
-        url="test_url", 
-        code=status_code, 
-        msg="Test error", 
-        hdrs={}, 
-        fp=None
+        url="test_url", code=status_code, msg="Test error", hdrs={}, fp=None
     )
     error.read = Mock(return_value=error_response)
     return error
@@ -82,10 +80,10 @@ class TestBasestampClientSubmitSHA256:
         mock_urlopen.return_value = create_mock_response(response_data)
 
         client = BasestampClient()
-        stamp_id = client.submit_sha256("test_hash")
-        
+        stamp_id = client.submit_sha256("ab" * 32)
+
         assert stamp_id == "test_stamp_123"
-        
+
         # Verify the request was made correctly
         mock_urlopen.assert_called_once()
 
@@ -105,10 +103,10 @@ class TestBasestampClientGetStamp:
     @patch("basestamp.client.urllib.request.urlopen")
     def test_get_stamp_with_nonce_and_proof(self, mock_urlopen):
         """Test getting a stamp with nonce and proof."""
-        original_hash = "test_original_hash"
+        original_hash = calculate_sha256("test_original_hash")
         nonce = "test_nonce_456"
         leaf_hash = calculate_sha256(nonce + original_hash)
-        
+
         response_data = {
             "stamp_id": "test_stamp_456",
             "hash": original_hash,
@@ -120,14 +118,14 @@ class TestBasestampClientGetStamp:
                 "leaf_index": 0,
                 "siblings": ["sibling1"],
                 "directions": [True],
-                "root_hash": "root_hash"
-            }
+                "root_hash": "root_hash",
+            },
         }
         mock_urlopen.return_value = create_mock_response(response_data)
 
         client = BasestampClient()
         stamp = client.get_stamp("test_stamp_456")
-        
+
         # Verify returned stamp object
         assert isinstance(stamp, Stamp)
         assert stamp.stamp_id == "test_stamp_456"
@@ -140,14 +138,15 @@ class TestBasestampClientGetStamp:
     @patch("basestamp.client.urllib.request.urlopen")
     def test_get_stamp_with_iso8601_timestamp(self, mock_urlopen):
         """Test getting a stamp with ISO 8601 timestamp format (real API format)."""
-        original_hash = "test_original_hash"
+        original_hash = calculate_sha256("test_original_hash")
         nonce = "test_nonce_456"
         leaf_hash = calculate_sha256(nonce + original_hash)
-        
+
         response_data = {
             "stamp_id": "test_stamp_iso",
             "hash": original_hash,
-            "timestamp": "2025-07-28T02:21:45.496978965Z",  # ISO 8601 format with nanoseconds
+            # ISO 8601 format with nanoseconds
+            "timestamp": "2025-07-28T02:21:45.496978965Z",
             "status": "confirmed",
             "nonce": nonce,
             "merkle_proof": {
@@ -155,14 +154,14 @@ class TestBasestampClientGetStamp:
                 "leaf_index": 0,
                 "siblings": ["sibling1"],
                 "directions": [True],
-                "root_hash": "root_hash"
-            }
+                "root_hash": "root_hash",
+            },
         }
         mock_urlopen.return_value = create_mock_response(response_data)
 
         client = BasestampClient()
         stamp = client.get_stamp("test_stamp_iso")
-        
+
         # Verify returned stamp object
         assert isinstance(stamp, Stamp)
         assert stamp.stamp_id == "test_stamp_iso"
@@ -171,7 +170,7 @@ class TestBasestampClientGetStamp:
         assert isinstance(stamp.timestamp, int)  # Should be converted to int
         assert stamp.timestamp > 0  # Should be a valid Unix timestamp
         assert stamp.merkle_proof is not None
-        
+
         # Verify __repr__ works without TypeError
         repr_str = repr(stamp)
         assert "Stamp(CONFIRMED)" in repr_str
@@ -191,7 +190,10 @@ class TestBasestampClientGetStamp:
 
         client = BasestampClient()
         # Without wait=True, should raise exception when proof is not available
-        with pytest.raises(BasestampError, match="Stamp test_stamp_789 is not yet available.*Use wait=True"):
+        with pytest.raises(
+            BasestampError,
+            match="Stamp test_stamp_789 is not yet available.*Use wait=True",
+        ):
             client.get_stamp("test_stamp_789")
 
     @patch("basestamp.client.urllib.request.urlopen")
@@ -202,22 +204,20 @@ class TestBasestampClientGetStamp:
             "hash": "test_hash",
             "timestamp": 1234567890,
             "status": "confirmed",
-            "batch_info": {
-                "nonce": "batch_nonce_123"
-            },
+            "batch_info": {"nonce": "batch_nonce_123"},
             "merkle_proof": {
                 "leaf_hash": "leaf_hash",
                 "leaf_index": 0,
                 "siblings": [],
                 "directions": [],
-                "root_hash": "root_hash"
-            }
+                "root_hash": "root_hash",
+            },
         }
         mock_urlopen.return_value = create_mock_response(response_data)
 
         client = BasestampClient()
         stamp = client.get_stamp("test_stamp_batch")
-        
+
         assert stamp.nonce == "batch_nonce_123"
 
     @patch("basestamp.client.urllib.request.urlopen")
@@ -233,7 +233,10 @@ class TestBasestampClientGetStamp:
         mock_urlopen.return_value = create_mock_response(response_data)
 
         client = BasestampClient()
-        with pytest.raises(BasestampError, match="Stamp test_stamp_pending is not yet available.*Use wait=True"):
+        with pytest.raises(
+            BasestampError,
+            match="Stamp test_stamp_pending is not yet available.*Use wait=True",
+        ):
             client.get_stamp("test_stamp_pending")
 
     @patch("basestamp.client.urllib.request.urlopen")
@@ -250,14 +253,14 @@ class TestBasestampClientGetStamp:
                 "leaf_index": 0,
                 "siblings": [],
                 "directions": [],
-                "root_hash": "root_hash"
-            }
+                "root_hash": "root_hash",
+            },
         }
         mock_urlopen.return_value = create_mock_response(response_data)
 
         client = BasestampClient()
         stamp = client.get_stamp("test_stamp_ready", wait=True)
-        
+
         assert isinstance(stamp, Stamp)
         assert stamp.stamp_id == "test_stamp_ready"
         assert stamp.merkle_proof is not None
@@ -267,11 +270,13 @@ class TestBasestampClientGetStamp:
     @patch("basestamp.client.urllib.request.urlopen")
     @patch("basestamp.client.time.sleep")
     @patch("basestamp.client.time.time")
-    def test_get_stamp_wait_success_after_polling(self, mock_time, mock_sleep, mock_urlopen):
+    def test_get_stamp_wait_success_after_polling(
+        self, mock_time, mock_sleep, mock_urlopen
+    ):
         """Test waiting for stamp that becomes available after polling."""
         # Mock time progression: start at 0, then 1, then 2 seconds
         mock_time.side_effect = [0, 1, 2]
-        
+
         # First call - not ready, second call - ready
         not_ready_data = {
             "stamp_id": "test_stamp_polling",
@@ -279,7 +284,7 @@ class TestBasestampClientGetStamp:
             "timestamp": 1234567890,
             "status": "pending",
         }
-        
+
         ready_data = {
             "stamp_id": "test_stamp_polling",
             "hash": "test_hash",
@@ -290,15 +295,18 @@ class TestBasestampClientGetStamp:
                 "leaf_index": 0,
                 "siblings": [],
                 "directions": [],
-                "root_hash": "root_hash"
-            }
+                "root_hash": "root_hash",
+            },
         }
-        
-        mock_urlopen.side_effect = [create_mock_response(not_ready_data), create_mock_response(ready_data)]
+
+        mock_urlopen.side_effect = [
+            create_mock_response(not_ready_data),
+            create_mock_response(ready_data),
+        ]
 
         client = BasestampClient()
         stamp = client.get_stamp("test_stamp_polling", wait=True)
-        
+
         assert isinstance(stamp, Stamp)
         assert stamp.stamp_id == "test_stamp_polling"
         assert stamp.merkle_proof is not None
@@ -314,7 +322,7 @@ class TestBasestampClientGetStamp:
         """Test timeout when waiting for stamp."""
         # Mock time progression: start at 0, then simulate 31 seconds elapsed
         mock_time.side_effect = [0, 31]
-        
+
         # Always return not ready
         response_data = {
             "stamp_id": "test_stamp_timeout",
@@ -325,7 +333,10 @@ class TestBasestampClientGetStamp:
         mock_urlopen.return_value = create_mock_response(response_data)
 
         client = BasestampClient()
-        with pytest.raises(BasestampError, match="Timeout waiting for stamp test_stamp_timeout after 30 seconds"):
+        with pytest.raises(
+            BasestampError,
+            match="Timeout waiting for stamp test_stamp_timeout after 30 seconds",
+        ):
             client.get_stamp("test_stamp_timeout", wait=True, timeout=30)
 
     @patch("basestamp.client.urllib.request.urlopen")
@@ -341,19 +352,16 @@ class TestBasestampClientGetStamp:
                 "leaf_index": 0,
                 "siblings": [],
                 "directions": [],
-                "root_hash": "root_hash"
-            }
+                "root_hash": "root_hash",
+            },
         }
         mock_urlopen.return_value = create_mock_response(response_data)
 
         client = BasestampClient()
         stamp = client.get_stamp("test_stamp_custom", wait=True, timeout=60)
-        
+
         assert isinstance(stamp, Stamp)
         assert stamp.stamp_id == "test_stamp_custom"
-
-
-
 
 
 class TestStampVerification:
@@ -361,79 +369,81 @@ class TestStampVerification:
 
     def test_verify_with_nonce_success(self):
         """Test successful verification with nonce."""
-        original_hash = "verify_test_hash"
+        original_hash = calculate_sha256("verify_test_hash")
         nonce = "verify_nonce_123"
         leaf_hash = calculate_sha256(nonce + original_hash)
-        
+
         merkle_proof = MerkleProof(
             leaf_hash=leaf_hash,
             leaf_index=0,
             siblings=[],
             directions=[],
-            root_hash=leaf_hash
+            root_hash=leaf_hash,
         )
-        
+
         stamp = Stamp(
             stamp_id="verify_test",
             hash=original_hash,
             timestamp=1640995200,
             status="confirmed",
             merkle_proof=merkle_proof,
-            nonce=nonce
+            nonce=nonce,
         )
-        
+
         result = stamp.verify(original_hash)
         assert result is True
 
     def test_verify_with_wrong_hash_fails(self):
         """Test verification fails with wrong hash."""
-        original_hash = "correct_hash"
-        wrong_hash = "wrong_hash"
+        original_hash = calculate_sha256("correct_hash")
+        wrong_hash = calculate_sha256("wrong_hash")
         nonce = "test_nonce"
         leaf_hash = calculate_sha256(nonce + original_hash)
-        
+
         merkle_proof = MerkleProof(
             leaf_hash=leaf_hash,
             leaf_index=0,
             siblings=[],
             directions=[],
-            root_hash=leaf_hash
+            root_hash=leaf_hash,
         )
-        
+
         stamp = Stamp(
             stamp_id="fail_test",
             hash=original_hash,
             timestamp=1640995200,
             status="confirmed",
             merkle_proof=merkle_proof,
-            nonce=nonce
+            nonce=nonce,
         )
-        
-        with pytest.raises(BasestampError, match="Calculated leaf hash .* doesn't match proof leaf hash"):
+
+        with pytest.raises(BasestampError, match="does not match stamped hash"):
             stamp.verify(wrong_hash)
 
     def test_verify_without_nonce_raises_error(self):
         """Test verification raises error when no nonce is available."""
-        original_hash = "test_hash"
-        
+        original_hash = calculate_sha256("test_hash")
         merkle_proof = MerkleProof(
             leaf_hash=original_hash,
             leaf_index=0,
             siblings=[],
             directions=[],
-            root_hash=original_hash
+            root_hash=original_hash,
         )
-        
+
         stamp = Stamp(
             stamp_id="no_nonce_test",
             hash=original_hash,
             timestamp=1640995200,
             status="confirmed",
             merkle_proof=merkle_proof,
-            nonce=None  # No nonce should raise error
+            nonce=None,  # No nonce should raise error
         )
-        
-        with pytest.raises(BasestampError, match="No nonce available for verification - nonce is required"):
+
+        with pytest.raises(
+            BasestampError,
+            match="No nonce available for verification - nonce is required",
+        ):
             stamp.verify(original_hash)
 
     def test_verify_no_proof_raises_error(self):
@@ -444,38 +454,42 @@ class TestStampVerification:
             timestamp=1640995200,
             status="pending",
             merkle_proof=None,
-            nonce=None
+            nonce=None,
         )
-        
-        with pytest.raises(BasestampError, match="No Merkle proof available for verification"):
+
+        with pytest.raises(
+            BasestampError, match="No Merkle proof available for verification"
+        ):
             stamp.verify("test_hash")
 
     def test_stamp_repr_with_proof(self):
         """Test Stamp __repr__ method with proof and nonce."""
         # Use a long hash that will be truncated (64 char SHA256)
-        original_hash = "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
+        original_hash = (
+            "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
+        )
         nonce = "test_nonce_123456789"  # Long nonce that will be truncated
         leaf_hash = calculate_sha256(nonce + original_hash)
-        
+
         merkle_proof = MerkleProof(
             leaf_hash=leaf_hash,
             leaf_index=0,
             siblings=["sibling1", "sibling2"],
             directions=[True, False],
-            root_hash="root_hash"
+            root_hash=calculate_sha256("root_hash"),
         )
-        
+
         stamp = Stamp(
             stamp_id="test_stamp_repr",
             hash=original_hash,
             timestamp=1640995200,  # Fixed timestamp for consistent testing
             status="confirmed",
             merkle_proof=merkle_proof,
-            nonce=nonce
+            nonce=nonce,
         )
-        
+
         repr_str = repr(stamp)
-        
+
         # Check that all important information is present
         assert "Stamp(CONFIRMED)" in repr_str
         assert "test_stamp_repr" in repr_str
@@ -483,7 +497,7 @@ class TestStampVerification:
         assert "2022-01-01 00:00:00 UTC" in repr_str  # Formatted timestamp
         assert "Merkle Proof: (2 siblings)" in repr_str
         assert f"Leaf Hash: {leaf_hash}" in repr_str  # Leaf hash
-        assert "Root Hash: root_hash" in repr_str  # Root hash
+        assert f"Root Hash: {calculate_sha256('root_hash')}" in repr_str  # Root hash
         assert nonce in repr_str  # Full nonce
 
     def test_stamp_repr_without_proof(self):
@@ -494,11 +508,11 @@ class TestStampVerification:
             timestamp=1640995200,
             status="pending",
             merkle_proof=None,
-            nonce=None
+            nonce=None,
         )
-        
+
         repr_str = repr(stamp)
-        
+
         # Check pending stamp representation
         assert "Stamp(PENDING)" in repr_str
         assert "pending_stamp" in repr_str
@@ -508,7 +522,6 @@ class TestStampVerification:
         # Should not contain proof information
         assert "Merkle Proof" not in repr_str
         assert "Nonce" not in repr_str
-
 
 
 class TestBasestampClientMakeRequest:
@@ -535,7 +548,9 @@ class TestBasestampClientMakeRequest:
     @patch("basestamp.client.urllib.request.urlopen")
     def test_make_request_http_error_with_json_error_field(self, mock_urlopen):
         """Test HTTP error handling when response has JSON error field."""
-        mock_urlopen.side_effect = create_mock_http_error(404, {"error": "Stamp not found"})
+        mock_urlopen.side_effect = create_mock_http_error(
+            404, {"error": "Stamp not found"}
+        )
 
         client = BasestampClient()
         with pytest.raises(BasestampError, match="Stamp not found"):
@@ -544,7 +559,9 @@ class TestBasestampClientMakeRequest:
     @patch("basestamp.client.urllib.request.urlopen")
     def test_make_request_http_error_with_message_field(self, mock_urlopen):
         """Test HTTP error handling when response has JSON message field."""
-        mock_urlopen.side_effect = create_mock_http_error(400, {"message": "Invalid request"})
+        mock_urlopen.side_effect = create_mock_http_error(
+            400, {"message": "Invalid request"}
+        )
 
         client = BasestampClient()
         with pytest.raises(BasestampError, match="Invalid request"):
@@ -586,7 +603,6 @@ class TestBasestampClientMakeRequest:
             client._make_request("GET", "/test")
 
 
-
 class TestBasestampClientContextManager:
     """Tests for context manager functionality."""
 
@@ -598,24 +614,24 @@ class TestBasestampClientContextManager:
     def test_context_manager_cleanup(self):
         """Test context manager cleanup."""
         client = BasestampClient()
-        
+
         with client:
             pass
-            
+
         # Client should still exist after context exit (no cleanup needed for urllib)
         assert isinstance(client, BasestampClient)
 
     def test_context_manager_exit_with_exception(self):
         """Test context manager __exit__ method is called even with exceptions."""
         client = BasestampClient()
-        
+
         # The __exit__ method should be called even if an exception occurs
         try:
             with client:
                 raise ValueError("Test exception")
         except ValueError:
             pass  # Expected exception
-        
+
         # Client should still exist after exception
         assert isinstance(client, BasestampClient)
 
@@ -687,6 +703,7 @@ class TestTimestampParsing:
         """Test that malformed ISO string raises ValueError."""
         with pytest.raises(ValueError, match="Unsupported timestamp format"):
             _parse_timestamp("not-a-valid-iso-string")
+
 
 def test_user_agent_identifies_sdk():
     from basestamp.client import USER_AGENT

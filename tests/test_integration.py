@@ -14,7 +14,7 @@ from basestamp.types import ClientOptions, MerkleProof
 def create_mock_response(response_data: dict, status_code: int = 200):
     """Helper function to create mock urllib response."""
     mock_response = Mock()
-    mock_response.read.return_value = json.dumps(response_data).encode('utf-8')
+    mock_response.read.return_value = json.dumps(response_data).encode("utf-8")
     mock_response.__enter__ = Mock(return_value=mock_response)
     mock_response.__exit__ = Mock(return_value=None)
     return mock_response
@@ -30,10 +30,10 @@ class TestBasestampIntegration:
         data = "Hello, Basestamp!"
         hash_value = calculate_sha256(data)
         nonce = "test_nonce_123"
-        
+
         # Calculate leaf hash with nonce for proof
         leaf_hash = calculate_sha256(nonce + hash_value)
-        
+
         # Mock timestamp creation response
         timestamp_response = Mock()
         timestamp_response.ok = True
@@ -56,9 +56,9 @@ class TestBasestampIntegration:
             "merkle_proof": {
                 "leaf_hash": leaf_hash,
                 "leaf_index": 0,
-                "siblings": ["sibling_hash"],
+                "siblings": [calculate_sha256("sibling_hash")],
                 "directions": [True],
-                "root_hash": _hash_pair(leaf_hash, "sibling_hash"),
+                "root_hash": _hash_pair(leaf_hash, calculate_sha256("sibling_hash")),
                 "nonce": nonce,
             },
         }
@@ -90,7 +90,7 @@ class TestBasestampIntegration:
 
         # 3. Verify stamp using new API
         is_valid = stamp_details.verify(hash_value)
-        assert is_valid == True
+        assert is_valid is True
 
     def test_calculate_sha256_with_real_data(self):
         """Test SHA256 calculation with known test vectors."""
@@ -146,7 +146,7 @@ class TestBasestampIntegration:
         )
 
         # Verify the proof
-        assert verify_merkle_proof(proof) == True
+        assert verify_merkle_proof(proof) is True
 
         # Test with wrong root
         wrong_proof = MerkleProof(
@@ -157,7 +157,7 @@ class TestBasestampIntegration:
             root_hash="wrong_root",
         )
 
-        assert verify_merkle_proof(wrong_proof) == False
+        assert verify_merkle_proof(wrong_proof) is False
 
     def test_client_with_custom_options(self):
         """Test client functionality with custom options."""
@@ -190,7 +190,6 @@ class TestBasestampIntegration:
         with pytest.raises(Exception):
             client.get_stamp("test_stamp")
 
-
     def test_library_imports(self):
         """Test that all expected symbols can be imported."""
         # Test direct imports
@@ -203,6 +202,7 @@ class TestBasestampIntegration:
             verify_merkle_proof,
         )
 
+        assert issubclass(BasestampError, Exception)
         # Test that they are the expected types
         assert callable(BasestampClient)
         assert callable(calculate_sha256)
@@ -217,7 +217,11 @@ class TestBasestampIntegration:
         assert isinstance(options, ClientOptions)
 
         proof = MerkleProof(
-            leaf_hash="leaf", leaf_index=0, siblings=["sib"], directions=[False], root_hash="root"
+            leaf_hash="leaf",
+            leaf_index=0,
+            siblings=["sib"],
+            directions=[False],
+            root_hash="root",
         )
         assert isinstance(proof, MerkleProof)
 
@@ -232,6 +236,6 @@ class TestBasestampIntegration:
             assert client.options.base_url == "https://test.basestamp.com"
             assert client.timeout == 5.0
 
-            # Verify we can call methods (will fail due to no mocking, but structure is correct)
+            # Methods exist (not called: no mocking here)
             assert hasattr(client, "submit_sha256")
             assert hasattr(client, "get_stamp")
