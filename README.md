@@ -51,12 +51,16 @@ The main client class for interacting with the Basestamp service.
 ```python
 from basestamp import BasestampClient, ClientOptions
 
-# Default configuration
+# Default configuration: Base mainnet (https://api-mainnet.basestamp.io, chain 8453)
 client = BasestampClient()
+
+# Base Sepolia testnet (chain 84532)
+from basestamp import SEPOLIA_BASE_URL
+testnet = BasestampClient(ClientOptions(base_url=SEPOLIA_BASE_URL))
 
 # Custom configuration
 options = ClientOptions(
-    base_url="https://api.basestamp.io",
+    base_url="https://api-mainnet.basestamp.io",
     timeout=30000  # milliseconds
 )
 client = BasestampClient(options)

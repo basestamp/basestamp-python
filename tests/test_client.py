@@ -53,7 +53,7 @@ class TestBasestampClientInit:
     def test_default_initialization(self):
         """Test client initialization with default options."""
         client = BasestampClient()
-        assert client.options.base_url == "https://api.basestamp.io"
+        assert client.options.base_url == "https://api-mainnet.basestamp.io"
         assert client.options.timeout == 30000
         assert client.timeout == 30.0  # Converted to seconds
 
