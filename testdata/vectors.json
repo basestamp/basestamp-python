@@ -90,6 +90,24 @@
     "chain_id": 8453
   },
   {
+    "name": "mainnet-single-leaf-go-e2e",
+    "description": "Real Base mainnet stamp from the basestamp-go E2E run (single-leaf batch, leaf == root).",
+    "hash": "f8906cf55527395dd842b4b02f0f60d77cb55b579ddd0514b213d553cd233efe",
+    "nonce": "1792084465820778959",
+    "proof": {
+      "leaf_hash": "81ffa7877b32cbde1681149f9b48ac2b8edeb57c3bc5f16f53aad2712c6e5aab",
+      "leaf_index": 0,
+      "siblings": [],
+      "directions": [],
+      "root_hash": "81ffa7877b32cbde1681149f9b48ac2b8edeb57c3bc5f16f53aad2712c6e5aab"
+    },
+    "expected_root": "81ffa7877b32cbde1681149f9b48ac2b8edeb57c3bc5f16f53aad2712c6e5aab",
+    "valid": true,
+    "stamp_id": "36e05662b5ef175b70f937c245185435da49dfb245f86f44a6269d81cdd5b9b3",
+    "tx_id": "0x846515a571444a046b0f87c86ac2d543a3b5d0af8a084a14a6d5fc5e19f012ce",
+    "chain_id": 8453
+  },
+  {
     "name": "tampered-leaf-hash",
     "description": "leaf_hash altered by one nibble",
     "hash": "9b5ab67b282d6372b7587d91d9a1a107dc0517f308bf4c1c09fcb98e373837bf",
